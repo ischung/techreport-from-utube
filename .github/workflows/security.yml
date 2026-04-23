@@ -1,0 +1,86 @@
+# Security workflow — issue #10 (CI-16)
+#
+# Runs SAST (bandit) + dependency vulnerability audits (pip-audit, pnpm audit)
+# on every PR and push to main. High-severity findings fail the job and block
+# merge (the merge block itself is set up as a required status check in #3's
+# branch-protection follow-up — this workflow just needs to be green/red).
+#
+# Deliberately scoped to "public, secretless" scans so it stays fork-safe.
+
+name: security
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: security-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend · bandit + pip-audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+          cache-dependency-glob: backend/pyproject.toml
+
+      - name: Set up Python
+        run: uv python install 3.11
+
+      - name: Install bandit + pip-audit
+        run: uv pip install --system bandit[toml] pip-audit
+
+      - name: Bandit SAST (fail on HIGH)
+        # -ll keeps output informational; -lll would be "HIGH-only" filter
+        run: bandit -r app -ll -x tests
+
+      - name: pip-audit (fail on HIGH)
+        # --strict makes advisory errors fatal; the default behaviour is to
+        # report all vulns and return 1 if any are found.
+        run: pip-audit --strict
+
+  frontend:
+    name: Frontend · biome + pnpm audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile || pnpm install
+
+      - name: Biome check (security-relevant lint rules)
+        run: pnpm lint
+
+      - name: pnpm audit (production deps, fail on HIGH)
+        # `--prod` scopes to runtime deps (what actually ships); dev-only
+        # advisories are out of scope for this gate.
+        # `--audit-level high` exits non-zero only for high/critical findings.
+        run: pnpm audit --prod --audit-level high
