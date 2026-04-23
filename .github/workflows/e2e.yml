@@ -1,0 +1,88 @@
+# E2E workflow — issue #9 (CI-9)
+#
+# Brings up the docker-compose stack then runs Playwright against it.
+# Expanded scenarios (no-transcript / no-results / success) come in #16.
+
+name: e2e
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  playwright:
+    name: Playwright smoke (compose stack)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Prepare .env for compose
+        run: cp .env.example .env
+
+      - name: Build images
+        run: docker compose build
+
+      - name: Bring stack up
+        run: docker compose up -d
+
+      - name: Wait for stack (smoke script)
+        run: ./scripts/smoke.sh
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install frontend deps
+        working-directory: frontend
+        run: pnpm install --frozen-lockfile || pnpm install
+
+      - name: Install Playwright browsers
+        working-directory: frontend
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Run Playwright
+        working-directory: frontend
+        env:
+          PLAYWRIGHT_BASE_URL: http://localhost
+        run: pnpm test:e2e
+
+      - name: Collect compose logs on failure
+        if: failure()
+        run: |
+          mkdir -p compose-logs
+          docker compose logs --no-color > compose-logs/all.log || true
+
+      - name: Upload compose logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-compose-logs-${{ github.run_id }}
+          path: compose-logs/
+          retention-days: 7
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ github.run_id }}
+          path: frontend/playwright-report/
+          retention-days: 7
+
+      - name: Tear down
+        if: always()
+        run: docker compose down -v || true

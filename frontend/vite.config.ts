@@ -23,5 +23,8 @@ export default defineConfig({
     globals: true,
     environment: "jsdom",
     setupFiles: ["./tests/setup.ts"],
+    // Keep Vitest focused on unit tests; Playwright owns tests/e2e/**
+    include: ["tests/**/*.test.{ts,tsx}"],
+    exclude: ["node_modules", "tests/e2e/**", "dist"],
   },
 });
