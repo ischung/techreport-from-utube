@@ -1,8 +1,13 @@
+import { EmptyState } from "@/components/EmptyState";
 import { VideoCard } from "@/components/VideoCard";
 import { useAppStore } from "@/store/useAppStore";
 
 export function VideoListView() {
   const { keyword, videos, selectedVideoId, selectVideo, reset } = useAppStore();
+
+  if (videos.length === 0) {
+    return <EmptyState keyword={keyword} onRetry={reset} />;
+  }
 
   return (
     <section className="mx-auto w-full max-w-3xl space-y-6">
@@ -36,7 +41,7 @@ export function VideoListView() {
       </ul>
 
       <p className="font-mono text-[11px] text-fg-subtle">
-        영상을 하나 선택하면 다음 단계(분석)로 진행됩니다. (#12 에서 구현)
+        영상을 하나 선택하면 다음 단계(분석)로 진행됩니다.
       </p>
     </section>
   );

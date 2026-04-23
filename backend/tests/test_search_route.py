@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 from typing import Any
+from unittest.mock import AsyncMock
 
+import httpx
 import pytest
 from fastapi.testclient import TestClient
 
@@ -19,7 +21,7 @@ class FakeService:
 
 
 @pytest.fixture(autouse=True)
-def reset_overrides() -> None:
+def reset_overrides():
     app.dependency_overrides.pop(get_search_service, None)
     yield
     app.dependency_overrides.pop(get_search_service, None)
@@ -35,7 +37,7 @@ def _sample_video(i: int = 0) -> VideoSearchResult:
     )
 
 
-def _override_with(fake: FakeService) -> None:
+def _override_with(fake: object) -> None:
     app.dependency_overrides[get_search_service] = lambda: fake
 
 
@@ -58,10 +60,36 @@ def test_keyword_too_short_returns_422() -> None:
     assert response.status_code == 422
 
 
-def test_empty_result_returns_404_with_no_results_code() -> None:
+def test_empty_result_returns_200_with_empty_list() -> None:
+    """No-results is not an error — it's a normal 200 with data.videos=[]."""
     _override_with(FakeService([]))
     client = TestClient(app)
     response = client.post("/api/search", json={"keyword": "zzzxxxyyy"})
-    assert response.status_code == 404
+    assert response.status_code == 200
     body = response.json()
-    assert body["detail"]["code"] == "NO_RESULTS"
+    assert body["ok"] is True
+    assert body["data"]["videos"] == []
+
+
+def test_youtube_http_error_returns_502_with_code() -> None:
+    service = AsyncMock()
+    request = httpx.Request("GET", "https://example")
+    response = httpx.Response(503, request=request)
+    service.search.side_effect = httpx.HTTPStatusError("boom", request=request, response=response)
+    _override_with(service)
+    client = TestClient(app)
+    resp = client.post("/api/search", json={"keyword": "react"})
+    assert resp.status_code == 502
+    assert resp.json()["detail"]["code"] == "YOUTUBE_API_ERROR"
+    assert resp.json()["detail"]["retryable"] is True
+
+
+def test_youtube_unreachable_returns_502() -> None:
+    service = AsyncMock()
+    request = httpx.Request("GET", "https://example")
+    service.search.side_effect = httpx.ConnectError("dns fail", request=request)
+    _override_with(service)
+    client = TestClient(app)
+    resp = client.post("/api/search", json={"keyword": "react"})
+    assert resp.status_code == 502
+    assert resp.json()["detail"]["code"] == "YOUTUBE_API_ERROR"
