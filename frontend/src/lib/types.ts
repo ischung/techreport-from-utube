@@ -13,3 +13,23 @@ export interface ApiError {
   message: string;
   retryable: boolean;
 }
+
+export interface ReportSection {
+  overview: string;
+  coreConcepts: string[];
+  detailedContent: string;
+  lectureTips: string;
+  references: string[];
+}
+
+export interface AnalysisReport {
+  videoId: string;
+  title: string;
+  sourceUrl: string;
+  publishedAt: string;
+  generatedAt: string;
+  llmProvider: string;
+  sections: ReportSection;
+  markdown: string;
+  savedPath: string;
+}
