@@ -1,4 +1,4 @@
-import type { ApiError, VideoSearchResult } from "@/lib/types";
+import type { AnalysisReport, ApiError, VideoSearchResult } from "@/lib/types";
 import axios, { type AxiosError } from "axios";
 
 export interface HealthData {
@@ -32,6 +32,26 @@ export async function searchVideos(keyword: string): Promise<VideoSearchResult[]
       keyword,
     });
     return response.data.data.videos;
+  } catch (err) {
+    const axiosErr = err as AxiosError<ErrorEnvelope>;
+    if (axiosErr.response?.data?.detail) {
+      const { code, message, retryable } = axiosErr.response.data.detail;
+      throw Object.assign(new Error(message), { code, retryable });
+    }
+    throw err;
+  }
+}
+
+export async function analyzeVideo(selection: {
+  videoId: string;
+  title: string;
+  url: string;
+  publishedAt?: string;
+}): Promise<AnalysisReport> {
+  const analyzeClient = axios.create({ baseURL: "/api", timeout: 180_000 });
+  try {
+    const response = await analyzeClient.post<Envelope<AnalysisReport>>("/analyze", selection);
+    return response.data.data;
   } catch (err) {
     const axiosErr = err as AxiosError<ErrorEnvelope>;
     if (axiosErr.response?.data?.detail) {

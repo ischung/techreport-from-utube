@@ -1,6 +1,8 @@
+import { AnalyzingView } from "@/components/AnalyzingView";
 import { AppShell } from "@/components/AppShell";
 import { ErrorBanner } from "@/components/ErrorBanner";
 import { KeywordInputView } from "@/components/KeywordInputView";
+import { ReportResultView } from "@/components/ReportResultView";
 import { VideoListView } from "@/components/VideoListView";
 import { useAppStore } from "@/store/useAppStore";
 
@@ -17,9 +19,8 @@ export default function App() {
 
       {phase === "input" ? <KeywordInputView /> : null}
       {phase === "list" ? <VideoListView /> : null}
-      {phase === "analyzing" ? (
-        <p className="text-center text-sm text-fg-muted">분석 UI는 #13에서 구현됩니다.</p>
-      ) : null}
+      {phase === "analyzing" ? <AnalyzingView /> : null}
+      {phase === "result" ? <ReportResultView /> : null}
     </AppShell>
   );
 }

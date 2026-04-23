@@ -51,6 +51,46 @@ class SearchResponse(BaseModel):
     data: SearchData
 
 
+class AnalyzeRequest(BaseModel):
+    video_id: str = Field(..., alias="videoId", min_length=1)
+    title: str = Field(..., min_length=1)
+    url: str = Field(..., min_length=1)
+    published_at: str = Field(default="", alias="publishedAt")
+
+    model_config = {"populate_by_name": True}
+
+
+class ReportSectionDTO(BaseModel):
+    """Structured output the pipeline writes into the final report."""
+
+    overview: str
+    core_concepts: list[str] = Field(default_factory=list, alias="coreConcepts")
+    detailed_content: str = Field(default="", alias="detailedContent")
+    lecture_tips: str = Field(default="", alias="lectureTips")
+    references: list[str] = Field(default_factory=list)
+
+    model_config = {"populate_by_name": True}
+
+
+class AnalysisReport(BaseModel):
+    video_id: str = Field(..., alias="videoId")
+    title: str
+    source_url: str = Field(..., alias="sourceUrl")
+    published_at: str = Field(default="", alias="publishedAt")
+    generated_at: str = Field(..., alias="generatedAt")
+    llm_provider: str = Field(..., alias="llmProvider")
+    sections: ReportSectionDTO
+    markdown: str
+    saved_path: str = Field(..., alias="savedPath")
+
+    model_config = {"populate_by_name": True}
+
+
+class AnalyzeResponse(BaseModel):
+    ok: bool = True
+    data: AnalysisReport
+
+
 class ApiError(BaseModel):
     code: str
     message: str
