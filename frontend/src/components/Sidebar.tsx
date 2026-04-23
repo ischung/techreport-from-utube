@@ -1,11 +1,11 @@
 import { BrandMark } from "@/components/BrandMark";
 import { StatusDot } from "@/components/StatusDot";
 import { useHealth } from "@/hooks/useHealth";
-import { FileText, Home, Settings } from "lucide-react";
+import { FileText, Home, type LucideIcon, Settings } from "lucide-react";
 
 interface NavItem {
   label: string;
-  icon: React.ComponentType<{ size?: number; strokeWidth?: number; "aria-hidden"?: boolean }>;
+  icon: LucideIcon;
   active: boolean;
   disabled?: boolean;
 }

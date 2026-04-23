@@ -3,6 +3,7 @@
 Kept deliberately flat. Each enlargement should be motivated by a TechSpec
 section number so the mirror stays in sync.
 """
+
 from __future__ import annotations
 
 from typing import Literal

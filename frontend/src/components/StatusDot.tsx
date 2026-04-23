@@ -25,15 +25,14 @@ const LABEL_MAP: Record<HealthStatus, string> = {
 
 export function StatusDot({ status, label, className }: StatusDotProps) {
   return (
-    <span
+    <output
       className={cn("inline-flex items-center gap-2 text-xs font-mono", className)}
-      role="status"
       aria-live="polite"
       data-testid="status-dot"
       data-status={status}
     >
       <span aria-hidden="true" className={cn("h-2 w-2 rounded-full", COLOR_MAP[status])} />
       <span className="text-fg-muted">{label ?? LABEL_MAP[status]}</span>
-    </span>
+    </output>
   );
 }
