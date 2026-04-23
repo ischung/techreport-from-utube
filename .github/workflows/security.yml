@@ -43,17 +43,16 @@ jobs:
       - name: Set up Python
         run: uv python install 3.11
 
-      - name: Install bandit + pip-audit
-        run: uv pip install --system bandit[toml] pip-audit
-
       - name: Bandit SAST (fail on HIGH)
-        # -ll keeps output informational; -lll would be "HIGH-only" filter
-        run: bandit -r app -ll -x tests
+        # `uvx` runs the tool in an ephemeral env — avoids externally-managed
+        # interpreter errors on the hosted runner.
+        # -ll keeps output informational; -lll would be "HIGH-only" filter.
+        run: uvx --from 'bandit[toml]' bandit -r app -ll -x tests
 
       - name: pip-audit (fail on HIGH)
         # --strict makes advisory errors fatal; the default behaviour is to
         # report all vulns and return 1 if any are found.
-        run: pip-audit --strict
+        run: uvx pip-audit --strict
 
   frontend:
     name: Frontend · biome + pnpm audit
