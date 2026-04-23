@@ -15,6 +15,9 @@ async def search(
     body: SearchRequest,
     service: SearchService = Depends(get_search_service),
 ) -> SearchResponse:
+    """Return up to 5 recent videos. Empty result is ``data.videos == []``
+    (HTTP 200), not an error — "no match" is a valid outcome for a rare
+    keyword, not a server problem."""
     try:
         videos = await service.search(body.keyword)
     except httpx.HTTPStatusError as exc:
@@ -35,15 +38,5 @@ async def search(
                 retryable=True,
             ).model_dump(),
         ) from exc
-
-    if not videos:
-        raise HTTPException(
-            status_code=404,
-            detail=ApiError(
-                code="NO_RESULTS",
-                message="최근 1개월 이내 관련 영상을 찾지 못했어요.",
-                retryable=False,
-            ).model_dump(),
-        )
 
     return SearchResponse(ok=True, data=SearchData(videos=videos))
