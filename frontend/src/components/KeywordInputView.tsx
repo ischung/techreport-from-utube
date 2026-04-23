@@ -39,7 +39,7 @@ export function KeywordInputView() {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="flex items-center gap-2" role="search">
+      <form onSubmit={handleSubmit} className="flex items-center gap-2">
         <label htmlFor="keyword" className="sr-only">
           검색어
         </label>
