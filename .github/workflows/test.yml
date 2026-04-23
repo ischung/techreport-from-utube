@@ -35,8 +35,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: "pnpm"
-          cache-dependency-path: frontend/pnpm-lock.yaml
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile || pnpm install
@@ -61,13 +59,16 @@ jobs:
         uses: astral-sh/setup-uv@v3
         with:
           enable-cache: true
-          cache-dependency-glob: backend/uv.lock
+          cache-dependency-glob: backend/pyproject.toml
 
       - name: Set up Python
         run: uv python install 3.11
 
       - name: Install dependencies (dev extras)
         run: uv sync --extra dev
+
+      - name: Install project in editable mode
+        run: uv pip install -e .
 
       - name: Run pytest
         run: uv run pytest -q
