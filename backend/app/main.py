@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app import __version__
+from app.api.health import router as health_router
 
 
 def create_app() -> FastAPI:
@@ -22,6 +23,8 @@ def create_app() -> FastAPI:
     @app.get("/")
     def root() -> dict[str, str]:
         return {"service": "techreport-backend", "version": __version__}
+
+    app.include_router(health_router)
 
     return app
 

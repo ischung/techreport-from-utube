@@ -1,15 +1,21 @@
 import App from "@/App";
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
-describe("App", () => {
-  it("renders brand title", () => {
+describe("App / AppShell", () => {
+  it("renders the brand title and header", () => {
     render(<App />);
-    expect(screen.getByText("TechReport from YouTube")).toBeInTheDocument();
+    expect(screen.getAllByText(/TechReport/).length).toBeGreaterThan(0);
+    expect(screen.getByText("Hello Dashboard")).toBeInTheDocument();
   });
 
-  it("shows scaffolding status hint", () => {
+  it("shows the health status dot eventually turning to Online", async () => {
     render(<App />);
-    expect(screen.getByText(/Monorepo scaffolding complete/i)).toBeInTheDocument();
+    const dot = screen.getByTestId("status-dot");
+    expect(dot).toBeInTheDocument();
+    await waitFor(() => {
+      expect(dot.getAttribute("data-status")).toBe("up");
+    });
+    expect(screen.getByText("Online")).toBeInTheDocument();
   });
 });
