@@ -5,6 +5,10 @@ export interface HealthData {
   status: "up" | "degraded" | "down";
   llmProvider: string;
   version: string;
+  tokensInput?: number;
+  tokensOutput?: number;
+  tokensCacheRead?: number;
+  estimatedCostUsd?: number;
 }
 
 interface Envelope<T> {
