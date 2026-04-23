@@ -38,7 +38,9 @@ extend-exclude = [".venv", "dist", "build"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "N", "UP", "B", "SIM", "PT"]
-ignore = ["E501"]
+# E501: long-line noise handled by formatter; B008: FastAPI `Depends()` default
+#   argument is the idiomatic pattern and shouldn't be flagged.
+ignore = ["E501", "B008"]
 
 [tool.ruff.format]
 quote-style = "double"
