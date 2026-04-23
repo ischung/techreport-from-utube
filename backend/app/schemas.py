@@ -17,6 +17,11 @@ class HealthData(BaseModel):
     status: Literal["up", "degraded", "down"] = "up"
     llm_provider: str = Field(..., alias="llmProvider")
     version: str
+    # Observability — cumulative since process start (resets on restart)
+    tokens_input: int = Field(default=0, alias="tokensInput")
+    tokens_output: int = Field(default=0, alias="tokensOutput")
+    tokens_cache_read: int = Field(default=0, alias="tokensCacheRead")
+    estimated_cost_usd: float = Field(default=0.0, alias="estimatedCostUsd")
 
     model_config = {"populate_by_name": True}
 

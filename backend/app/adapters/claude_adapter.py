@@ -14,6 +14,7 @@ import asyncio
 import json
 import logging
 
+from app.observability.token_counter import TokenCounter, get_token_counter
 from app.ports.llm_provider import LLMProvider, ReportSection
 
 _LOG = logging.getLogger(__name__)
@@ -34,12 +35,14 @@ class ClaudeAdapter(LLMProvider):
         model: str = "claude-sonnet-4-6",
         max_tokens: int = 4096,
         timeout: float = _CLIENT_TIMEOUT_SECONDS,
+        counter: TokenCounter | None = None,
     ) -> None:
         self._api_key = api_key
         self._model = model
         self._max_tokens = max_tokens
         self._timeout = timeout
         self._client = None
+        self._counter = counter if counter is not None else get_token_counter()
 
     def _get_client(self):  # type: ignore[no-untyped-def]
         if self._client is None:
@@ -91,6 +94,15 @@ class ClaudeAdapter(LLMProvider):
         text = "".join(
             block.text for block in message.content if getattr(block, "type", None) == "text"
         ).strip()
+
+        # Record token usage — the response's `usage` object carries the counts.
+        usage = getattr(message, "usage", None)
+        if usage is not None:
+            self._counter.record(
+                input_tokens=int(getattr(usage, "input_tokens", 0) or 0),
+                output_tokens=int(getattr(usage, "output_tokens", 0) or 0),
+                cache_read_tokens=int(getattr(usage, "cache_read_input_tokens", 0) or 0),
+            )
 
         payload = _parse_json_payload(text)
         return ReportSection(

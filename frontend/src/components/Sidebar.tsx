@@ -59,6 +59,16 @@ export function Sidebar() {
         {data ? (
           <p className="mt-1 font-mono text-[10px] text-fg-subtle">llm: {data.llmProvider}</p>
         ) : null}
+        {data && (data.estimatedCostUsd ?? 0) > 0 ? (
+          <p
+            className="mt-1 font-mono text-[10px] text-fg-subtle"
+            data-testid="cost-badge"
+            title="Cumulative since process start (resets on restart)"
+          >
+            spend: ${data.estimatedCostUsd?.toFixed(4) ?? "0"} ·{" "}
+            {((data.tokensInput ?? 0) + (data.tokensOutput ?? 0)).toLocaleString()} tok
+          </p>
+        ) : null}
       </footer>
     </aside>
   );
