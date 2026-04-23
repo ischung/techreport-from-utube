@@ -1,0 +1,8 @@
+# Root-level ignore for any build contexts that reach the repo root.
+.git
+.github
+node_modules
+dist
+.venv
+reports
+*.md

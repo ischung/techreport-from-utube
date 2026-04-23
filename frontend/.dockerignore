@@ -1,0 +1,14 @@
+node_modules
+dist
+.vite
+coverage
+playwright-report
+test-results
+.turbo
+.git
+.env
+.env.*
+!.env.example
+Dockerfile
+.dockerignore
+README.md
