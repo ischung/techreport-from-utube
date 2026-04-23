@@ -1,0 +1,108 @@
+# Staging deployment — issue #5 (CI-5)
+#
+# "Local staging" model: on every push to main, the GitHub Actions runner
+# builds the two images and runs `docker compose up -d`, then verifies that
+# the stack is healthy. The stack lives and dies inside the runner — this is
+# a pedagogical stand-in for a real remote staging environment. A real
+# remote deployment (Fly.io / Vercel) is scheduled for issue #18 (prod).
+#
+# Why this shape:
+# - Proves the compose definition works end-to-end, not just `docker build`
+# - Mirrors the smoke layout issue #6 will wire into this same job
+# - Zero external secrets required — safe on forks and public PRs
+
+name: deploy-staging
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-staging-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Build images + compose up + health probe
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      LLM_PROVIDER: claude
+      ANTHROPIC_API_KEY: ""
+      YOUTUBE_API_KEY: ""
+      REPORTS_DIR: /data/reports
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Create empty .env for compose
+        run: |
+          cp .env.example .env
+          echo "(env ready — values are placeholders for staging boot check)"
+
+      - name: Build images (with BuildKit cache)
+        run: |
+          docker compose build \
+            --build-arg BUILDKIT_INLINE_CACHE=1
+
+      - name: Bring the stack up
+        run: docker compose up -d
+
+      - name: Wait for containers to settle
+        run: sleep 15
+
+      - name: Probe — backend /
+        run: |
+          for i in 1 2 3 4 5; do
+            if curl -fsS http://localhost:8000/ > /tmp/be.json; then
+              cat /tmp/be.json
+              echo "backend ok"
+              exit 0
+            fi
+            echo "backend not ready yet (attempt $i)" && sleep 5
+          done
+          echo "backend probe failed"
+          exit 1
+
+      - name: Probe — frontend /
+        run: |
+          for i in 1 2 3 4 5; do
+            if curl -fsSI http://localhost/ | head -1 | grep -q "200"; then
+              echo "frontend ok"
+              exit 0
+            fi
+            echo "frontend not ready yet (attempt $i)" && sleep 5
+          done
+          echo "frontend probe failed"
+          exit 1
+
+      - name: Compose status
+        if: always()
+        run: docker compose ps
+
+      - name: Collect compose logs on failure
+        if: failure()
+        run: |
+          mkdir -p compose-logs
+          docker compose logs --no-color > compose-logs/all.log || true
+          docker compose logs backend --no-color > compose-logs/backend.log || true
+          docker compose logs frontend --no-color > compose-logs/frontend.log || true
+
+      - name: Upload compose logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: compose-logs-${{ github.run_id }}
+          path: compose-logs/
+          retention-days: 7
+
+      - name: Tear down
+        if: always()
+        run: docker compose down -v || true
