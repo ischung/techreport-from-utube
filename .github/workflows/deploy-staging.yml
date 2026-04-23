@@ -58,34 +58,18 @@ jobs:
       - name: Wait for containers to settle
         run: sleep 15
 
-      - name: Probe — backend /
-        run: |
-          for i in 1 2 3 4 5; do
-            if curl -fsS http://localhost:8000/ > /tmp/be.json; then
-              cat /tmp/be.json
-              echo "backend ok"
-              exit 0
-            fi
-            echo "backend not ready yet (attempt $i)" && sleep 5
-          done
-          echo "backend probe failed"
-          exit 1
-
-      - name: Probe — frontend /
-        run: |
-          for i in 1 2 3 4 5; do
-            if curl -fsSI http://localhost/ | head -1 | grep -q "200"; then
-              echo "frontend ok"
-              exit 0
-            fi
-            echo "frontend not ready yet (attempt $i)" && sleep 5
-          done
-          echo "frontend probe failed"
-          exit 1
+      - name: Smoke test (scripts/smoke.sh)
+        run: ./scripts/smoke.sh
 
       - name: Compose status
         if: always()
         run: docker compose ps
+
+      - name: Emergency teardown on smoke failure
+        if: failure()
+        run: |
+          echo "::warning::Smoke failed — tearing the stack down early"
+          docker compose down -v || true
 
       - name: Collect compose logs on failure
         if: failure()
