@@ -1,12 +1,17 @@
 import App from "@/App";
+import { useAppStore } from "@/store/useAppStore";
 import { render, screen, waitFor } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 
 describe("App / AppShell", () => {
-  it("renders the brand title and header", () => {
+  beforeEach(() => {
+    useAppStore.getState().reset();
+  });
+
+  it("renders the brand title and starts in keyword-input phase", () => {
     render(<App />);
     expect(screen.getAllByText(/TechReport/).length).toBeGreaterThan(0);
-    expect(screen.getByText("Hello Dashboard")).toBeInTheDocument();
+    expect(screen.getByTestId("keyword-input")).toBeInTheDocument();
   });
 
   it("shows the health status dot eventually turning to Online", async () => {

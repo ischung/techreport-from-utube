@@ -24,3 +24,39 @@ class HealthData(BaseModel):
 class HealthResponse(BaseModel):
     ok: bool = True
     data: HealthData
+
+
+class VideoSearchResult(BaseModel):
+    """Video metadata returned by /api/search — TechSpec §4-1."""
+
+    video_id: str = Field(..., alias="videoId")
+    title: str
+    url: str
+    published_at: str = Field(..., alias="publishedAt")
+    channel_title: str = Field(..., alias="channelTitle")
+
+    model_config = {"populate_by_name": True}
+
+
+class SearchRequest(BaseModel):
+    keyword: str = Field(..., min_length=2, max_length=100)
+
+
+class SearchData(BaseModel):
+    videos: list[VideoSearchResult]
+
+
+class SearchResponse(BaseModel):
+    ok: bool = True
+    data: SearchData
+
+
+class ApiError(BaseModel):
+    code: str
+    message: str
+    retryable: bool = False
+
+
+class ApiErrorResponse(BaseModel):
+    ok: bool = False
+    error: ApiError
