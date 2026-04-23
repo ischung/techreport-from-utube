@@ -1,0 +1,46 @@
+# Local staging — frontend (nginx) + backend (FastAPI) on a private network.
+# Bring up: `docker compose up -d`
+# Health:   `curl http://localhost/` (frontend) + `curl http://localhost:8000/` (backend direct)
+# Tear down: `docker compose down`
+
+services:
+  backend:
+    build:
+      context: ./backend
+    image: techreport-backend:local
+    container_name: techreport-backend
+    env_file:
+      - .env
+    environment:
+      # Defaults so the container can boot even with an empty .env (AC: backend 8000 responds)
+      LLM_PROVIDER: ${LLM_PROVIDER:-claude}
+      REPORTS_DIR: /data/reports
+    volumes:
+      - ./reports:/data/reports
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/').read()"]
+      interval: 30s
+      timeout: 3s
+      start_period: 10s
+      retries: 3
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+    image: techreport-frontend:local
+    container_name: techreport-frontend
+    depends_on:
+      backend:
+        condition: service_started
+    ports:
+      - "80:80"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost/"]
+      interval: 30s
+      timeout: 3s
+      start_period: 5s
+      retries: 3
+    restart: unless-stopped
