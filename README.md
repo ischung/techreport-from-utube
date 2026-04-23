@@ -1,5 +1,8 @@
 # TechReport from YouTube
 
+[![lint](https://github.com/ischung/techreport-from-utube/actions/workflows/lint.yml/badge.svg)](https://github.com/ischung/techreport-from-utube/actions/workflows/lint.yml)
+[![test](https://github.com/ischung/techreport-from-utube/actions/workflows/test.yml/badge.svg)](https://github.com/ischung/techreport-from-utube/actions/workflows/test.yml)
+
 키워드 한 줄로 최근 1개월 YouTube 영상 5개를 찾아, 선택한 1편을 분석해 **한국어 기술보고서(마크다운)** 를 자동 생성하는 로컬 웹 대시보드입니다. 한성대 소프트웨어공학과 강의 데모 및 SDLC 실습 교재로 사용됩니다.
 
 ## 3분만에 시작하기
