@@ -1,0 +1,65 @@
+# ─── OS / Editor ─────────────────────────────
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json.example
+
+# ─── Secrets (MUST be ignored) ────────────────
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+!**/tests/fixtures/*.pem
+!**/tests/fixtures/*.key
+
+# ─── Node / Frontend ──────────────────────────
+node_modules/
+dist/
+build/
+.vite/
+.turbo/
+*.tsbuildinfo
+coverage/
+playwright-report/
+test-results/
+.nyc_output/
+pnpm-debug.log*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ─── Python / Backend ─────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.venv/
+venv/
+env/
+.env-*/
+.Python
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+.tox/
+
+# ─── Project-specific ─────────────────────────
+# Generated reports (user-local only, not committed).
+# We use `reports/*` (not `reports/`) so .gitkeep can survive via negation.
+reports/*
+!reports/.gitkeep
+
+# Local LLM caches
+.ollama-cache/
+
+# Logs
+logs/
+*.log
