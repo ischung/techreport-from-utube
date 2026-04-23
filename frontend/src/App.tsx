@@ -4,10 +4,12 @@ import { ErrorBanner } from "@/components/ErrorBanner";
 import { KeywordInputView } from "@/components/KeywordInputView";
 import { ReportResultView } from "@/components/ReportResultView";
 import { VideoListView } from "@/components/VideoListView";
+import { useGlobalShortcuts } from "@/hooks/useGlobalShortcuts";
 import { useAppStore } from "@/store/useAppStore";
 
 export default function App() {
   const { phase, error, setError } = useAppStore();
+  useGlobalShortcuts();
 
   return (
     <AppShell>

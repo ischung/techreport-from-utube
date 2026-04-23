@@ -73,7 +73,9 @@ export function KeywordInputView() {
       </form>
 
       <p className="font-mono text-fg-subtle text-xs">
-        2–100자 · Enter 로 제출 · 최근 30일 이내 업로드만 노출
+        2–100자 · Enter 로 제출 · 최근 30일 이내 업로드만 노출 ·{" "}
+        <kbd className="rounded border border-border bg-bg-card px-1 py-0.5 font-mono">/</kbd> 로
+        포커스
       </p>
     </section>
   );
