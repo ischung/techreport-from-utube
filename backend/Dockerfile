@@ -5,7 +5,9 @@ FROM python:3.11-slim
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     UV_SYSTEM_PYTHON=1 \
-    UV_LINK_MODE=copy
+    UV_LINK_MODE=copy \
+    LANG=C.UTF-8 \
+    LC_ALL=C.UTF-8
 
 # Install uv (static binary) — pin to a known-good minor for reproducibility
 RUN pip install --no-cache-dir uv==0.4.*
