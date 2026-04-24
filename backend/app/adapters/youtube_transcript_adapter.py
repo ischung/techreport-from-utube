@@ -34,3 +34,10 @@ class YouTubeTranscriptAdapter(TranscriptPort):
             return YouTubeTranscriptApi.get_transcript(video_id, languages=list(languages))
         except (TranscriptsDisabled, NoTranscriptFound) as exc:
             raise NoTranscriptError(str(exc)) from exc
+        except Exception as exc:
+            # Normalize every other library-internal failure (XML ParseError, network hiccup,
+            # YouTube blocking the scrape, …) into the domain exception so the API layer can
+            # surface a single, translated error to the user instead of a raw 500.
+            raise NoTranscriptError(
+                f"transcript unavailable ({type(exc).__name__}: {exc})"
+            ) from exc

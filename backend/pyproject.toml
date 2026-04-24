@@ -13,7 +13,9 @@ dependencies = [
     "httpx>=0.27.0",
     "anthropic>=0.34.0",
     "google-api-python-client>=2.137.0",
-    "youtube-transcript-api>=0.6.2",
+    # Pinned to 0.x: the 1.0 release removed the static `get_transcript` method
+    # our adapter relies on. Migration to the 1.x fetch() API tracked in #44.
+    "youtube-transcript-api>=0.6.2,<1.0",
 ]
 
 [project.optional-dependencies]
